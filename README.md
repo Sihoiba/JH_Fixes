@@ -10,6 +10,8 @@ Jupiter Hell mod to improve the quality of life with some of the mod pack, av an
 * Second chamber perk when applied also adds ammo equal to the space gained, so it now does something with the EGLS Launcher.
 * Extended Mag perk now adds ammo equal to the space added so it now does something on the Magpistol and Magrail
 * The Loading Feed perk will now only reload the Nailgun and Super Nailgun on move if they are empty and fully reloads the gun, instead of consuming a Repair Kit to reload 3-4 ammo 
+* The Gun Runner master skill will now only reload the Nailgun and Super Nailgun on move if they are empty and fully reloads the gun, instead of consuming a Repair Kit to reload 3-4 ammo 
+* Novabombs now list their damage in the description.
 * Nano packs can now be applied to melee weapons. If the weapon does not do pierce damage it makes the weapon pierce. If the weapon is already pierce adds 50% crit damage. Also makes large and non-blade weapons work with Tech Blademaster.
 
 
