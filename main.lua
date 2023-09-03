@@ -153,10 +153,18 @@ register_blueprint "perk_we_nano"
 		on_attach = [[
 			function( self, parent )
 				if parent.weapon and parent.clip then
+					parent.data.before_nano = {}
+					parent.data.before_nano.ammo = parent.clip.ammo
 					parent.clip.ammo = ""
 					self.text.desc = "this weapon doesn't need ammo when reloading"
-				elseif parent.weapon and parent.weapon.type == world:hash("melee") then					
+				elseif parent.weapon and parent.weapon.type == world:hash("melee") then
+					parent.data.before_nano = {}				
 					self.text.desc = "this weapon is sharper"
+					
+					parent.data.before_nano.damage_type	= parent.weapon.damage_type
+					parent.data.before_nano.large = parent.attributes.large
+					parent.data.before_nano.blade = parent.attributes.blade
+					
 					if parent.weapon.damage_type ~= world:hash("pierce") then	
 						nova.log("Nano make pierce")
 						parent.weapon.damage_type = "pierce"
@@ -174,6 +182,22 @@ register_blueprint "perk_we_nano"
 						self.text.desc = "this weapon is lighter, sharper and can now be wielded like a blade"
 						parent.attributes.blade = 1
 					end
+				end
+			end
+		]],
+		on_detach  = [[
+			function ( self, parent )
+				if parent and parent.data and parent.data.before_nano and parent.data.before_nano.ammo then
+					parent.clip.ammo = parent.data.before_nano.ammo					
+				end
+				if parent and parent.data and parent.data.before_nano and parent.data.before_nano.damage_type then
+					parent.weapon.damage_type = parent.data.before_nano.damage_type					
+				end
+				if parent and parent.data and parent.data.before_nano and parent.data.before_nano.large then
+					parent.attributes.large = parent.data.before_nano.large					
+				end
+				if parent and parent.data and parent.data.before_nano and parent.data.before_nano.blade then
+					parent.attributes.blade = parent.data.before_nano.blade					
 				end
 			end
 		]],
@@ -303,13 +327,23 @@ register_blueprint "perk_wb_second_chamber"
 			function( self, parent )
 				if parent.attributes and parent.clip then
 					self.attributes.clip_size = parent.attributes.clip_size or 1
-					if parent.data and parent.data.perk and parent.data.perk.exotic == "perk_we_rocket_rack" then
-						self.attributes.clip_size = 5
-					end
-					if parent.data and parent.data.perk and parent.data.perk.exotic == "perk_we_grenade_drum" then
-						self.attributes.clip_size = 6
+					for c in ecs:children( parent ) do
+						if c ~= self and c.attributes and c.attributes.clip_size then
+							self.attributes.clip_size = self.attributes.clip_size + c.attributes.clip_size
+						end
 					end
 					parent.clip.count = parent.clip.count + self.attributes.clip_size
+				end
+			end
+		]],
+		on_detach  = [[
+			function ( self, parent )
+				if parent.attributes and parent.clip then
+					if parent.clip.count >= self.attributes.clip_size then
+						parent.clip.count = parent.clip.count - self.attributes.clip_size
+					else
+						parent.clip.count = 0
+					end
 				end
 			end
 		]],
@@ -351,6 +385,17 @@ register_blueprint "perk_wb_extended_mag"
 				end
 			end
 		]],
+		on_detach  = [[
+			function ( self, parent )
+				if parent.attributes and parent.clip then
+					if parent.clip.count >= self.attributes.clip_size then
+						parent.clip.count = parent.clip.count - self.attributes.clip_size
+					else
+						parent.clip.count = 0
+					end
+				end
+			end
+		]],
 	},
 }
 
@@ -383,6 +428,161 @@ register_blueprint "perk_tb_loadingfeed"
 					end
 				end
 			end
+		]=],
+	},
+}
+
+register_blueprint "ktrait_master_gunrunner"
+{
+	blueprint = "trait",
+	text = {
+		name   = "GUNRUNNER",
+		desc   = "MASTER TRAIT - reduce attack time after move and reload weapons",
+		full   = "Run and gun is your motto! No wasting time reloading {?curse|shit|guns}, so you do it while you move. Also, while you move you prep for attack, so you attack faster, and with {!+1} optimal distance!\n\n{!LEVEL 1} - {!50%} attack time after move\n{!LEVEL 2} - {!25%} attack time and {!+25%} flat damage after move\n{!LEVEL 3} - {!+50%} flat damage after move\n\nYou can pick only one MASTER trait per character.",
+		abbr   = "MGU",
+		bdesc  = "{!GUNRUNNER} bonuses are active",
+		bdesc1 = "firing takes {!50%} regular attack time, {!+1} optimal distance",
+		bdesc2 = "firing takes {!25%} regular attack time, {!+1} optimal distance, {!+25%} damage",
+		bdesc3 = "firing takes {!25%} regular attack time, {!+1} optimal distance, {!+50%} damage",
+	},
+	ui_buff = {
+		color     = GREEN,
+		priority  = -1,
+		style     = 2,
+		attribute = "moved",
+	},
+	attributes = {
+		level          = 1,
+		moved          = 0,
+		apply          = 0,
+		fire_time      = 1.0,
+		opt_distance   = 0,
+		damage_mult    = 1.0,
+		gr_fire_time   = 1.0,
+		gr_damage_mult = 1.0,
+		gr_opt_distance= 0,
+	},
+	callbacks = {
+		on_activate = [=[
+			function(self,entity)
+				local tlevel, t = gtk.upgrade_master( entity, "ktrait_master_gunrunner" )
+				local attr      = t.attributes
+				if tlevel == 1 then
+					world:set_text( t, "bdesc", "bdesc1" )
+					attr.gr_fire_time    = 0.5
+					attr.gr_damage_mult  = 1.0
+					attr.gr_opt_distance = 1
+				elseif tlevel == 2 then
+					world:set_text( t, "bdesc", "bdesc2" )
+					attr.gr_fire_time    = 0.25
+					attr.gr_damage_mult  = 1.25
+					attr.gr_opt_distance = 1
+				elseif tlevel == 3 then
+					world:set_text( t, "bdesc", "bdesc3" )
+					attr.gr_fire_time    = 0.25
+					attr.gr_damage_mult  = 1.5
+					attr.gr_opt_distance = 1
+				end
+			end
+		]=],
+		on_pre_command = [[
+			function ( self, actor, cmt, tgt )
+				local attr   = self.attributes
+				if attr.moved == 1 then
+					attr.moved = 0
+					attr.apply = 1
+				end
+				return 0
+			end
+		]],
+		on_post_command = [[
+			function ( self, actor, cmt, weapon, time )
+				if time <= 1 then
+					local attr   = self.attributes
+					if attr.apply == 1 then
+						attr.moved = 1
+						attr.apply = 0
+					end
+					return
+				end
+				self.attributes.apply = 0
+			end
+		]],
+		on_move = [=[
+			function ( self, user )
+				local sattr  = self.attributes
+				sattr.moved  = 1
+				local weapon = user:get_weapon()
+				local function do_reload( weapon )
+					if weapon then
+						local wd     = weapon.weapon
+						if not wd then return 0 end
+						local cd     = weapon.clip
+						if cd then
+							local clip_size = weapon:attribute( "clip_size", wd.group )
+							if cd.count < clip_size and clip_size < 99 then
+								nova.log("Reload non nail "..tostring(cd.count).." of "..tostring(clip_size))
+								world:get_level():reload( user, weapon, true )
+							elseif cd.count < clip_size and cd.count == 0 and clip_size >= 99 then	
+								nova.log("Reload nail "..tostring(cd.count).." of "..tostring(clip_size))
+								world:get_level():reload( user, weapon, true )
+							end
+						end
+					end
+				end
+				do_reload( user:get_weapon(0) )
+				do_reload( user:get_weapon(1) )
+			end
+		]=],
+		on_aim = [=[
+			function ( self, entity, target, weapon )
+				local attr = self.attributes
+				if target and (( attr.moved == 1 ) or ( attr.apply == 1 )) then
+					attr.fire_time    = attr.gr_fire_time
+					attr.opt_distance = attr.gr_opt_distance
+					attr.damage_mult  = attr.gr_damage_mult
+				else
+					attr.fire_time    = 1.0
+					attr.opt_distance = 0
+					attr.damage_mult  = 1.0
+				end
+			end
+		]=],
+	},
+}
+
+register_blueprint "kit_nova"
+{
+	flags = { EF_ITEM, EF_CONSUMABLE }, 
+	lists = {
+		group    = "item",
+		keywords ={ "special", },
+		weight   = 50,
+		dmin     = 3,
+		dmed     = 7,
+		dmax     = 10,
+	},
+	text = {
+		name = "novabomb",
+		desc = "A marvel of engineering, the nova flux catalyst can replicate the raw, unbridled energy of a supernova in a destructive display of light and force, while keeping the user in the center intact. Usually. Deals 120 slash damage.",
+	},
+	ascii     = {
+		glyph     = "+",
+		color     = LIGHTCYAN,
+	},
+	callbacks = {
+		on_use = [=[
+		function( self, entity )
+			world:play_sound( "medkit_small", entity )
+			local p   = entity:get_position()
+
+			local w   = world:create_entity( "explosion_kit_nova" )
+			entity:attach( w )
+			world:get_level():fire( entity, p, w )
+			world:destroy( w )
+
+			return 100
+		end
 		]=],
 	},
 }
