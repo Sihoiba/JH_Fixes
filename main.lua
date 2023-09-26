@@ -82,6 +82,37 @@ register_blueprint "man_mdf"
 	},
 }
 
+register_blueprint "man_idr"
+{
+	blueprint = "manufacturer",
+	text = {
+		name     = "Io Defence Reserve",
+		prefixed = "IDR",
+		desc     = "{!-50%} reload time",
+	},
+	attributes = {
+		reload_time = 1.0,
+		melee_guard_dist = 0,
+	},
+	callbacks = {
+		on_attach = [=[
+			function( self, parent )
+				if parent and parent.weapon then
+					if ( parent.weapon.type ~= world:hash("melee") ) then
+						self.attributes.reload_time = 0.5
+						parent.text.prefix = self.text.prefixed
+						self.text.desc = "{!-50%} reload time"
+					else
+						self.attributes.melee_guard_dist = 1
+						parent.text.prefix = self.text.prefixed
+						self.text.desc = "increases melee guard range by 1"
+					end		
+				end
+			end
+		]=],
+	},
+}
+
 register_blueprint "perk_wa_sustain"
 {
 	blueprint = "perk", 
@@ -429,6 +460,42 @@ register_blueprint "perk_tb_loadingfeed"
 				end
 			end
 		]=],
+	},
+}
+
+register_blueprint "perk_wb_efficient"
+{
+	blueprint = "perk", 
+	lists = {
+		group    = "perk_wb",
+		keywords = { "reload", "pistols", "smgs", "auto", "rotary", "semi", },
+	},
+	data = {
+		perk_group = "reload",
+	},
+	text = {
+		name = "Efficient",
+		desc = "reload ammo efficiency doubled",
+	},
+	attributes = {
+		reload_mod = 1.0,
+		shot_cost_mod = 1,
+	},
+	callbacks = {
+		on_attach = [[
+			function( self, parent )
+				if parent.weapon then					
+					local clip = parent.attributes.clip_size
+					if clip ~= 99 then
+						self.attributes.reload_mod = 0.5
+						self.text.desc = "reload ammo efficiency doubled"
+					elseif clip == 99 then
+						self.attributes.shot_cost_mod = 0.75
+						self.text.desc = "75% ammo consumption"
+					end
+				end
+			end
+		]],		
 	},
 }
 
