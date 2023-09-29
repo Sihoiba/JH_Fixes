@@ -717,3 +717,53 @@ register_blueprint "kit_nova"
 		]=],
 	},
 }
+
+register_blueprint "ancient_pack_hallowed"
+{
+    flags = { EF_ITEM, EF_CONSUMABLE }, 
+    text = {
+        name = "ancient mod pack",
+        desc = "Ancient set of tools for weapon consecration. Cannot be reclaimed when dismantling the weapon.",
+
+        select = "Select weapon to hallow",
+    },
+    ascii     = {
+        glyph     = "\"",
+        color     = LIGHTCYAN,
+    },
+    data = {},
+    callbacks = {
+		on_use = [=[
+			function(self,entity)
+				if entity == world:get_player() then
+					mod.run_ui( self, entity, {
+						 mod_id    = "ancient_mod_hallow",
+						 desc      = self.text.select,
+						 slots     = { "1", "2", "3", "4" },
+						 no_child  = "perk_wa_hallowed",
+					 } )
+					return -1
+				else 
+					return -1
+				end
+			end
+		]=],
+		on_activate = [=[
+            function( self, who, level, param )
+                if self:parent() then return 0 end -- hack for activation prevention when in lootbox!
+				if param then
+					local me = mod.apply_mod( param, "ancient_mod_hallow" )
+					if param.weapon then
+						generator.add_perk( param, "perk_wa_hallowed", nil, true )
+					else
+						return 0
+					end
+					world:remove_item( who, self )
+					return 100
+				else
+					return 0
+				end
+			end	
+		]=]
+    },
+}
