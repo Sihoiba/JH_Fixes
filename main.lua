@@ -620,7 +620,7 @@ register_blueprint "ktrait_master_gunrunner"
 	},
 }
 
-function ignite_along_line(level, source, end_point) 
+function ignite_along_line(self, level, source, end_point) 
 	local start_point = source:get_position()
 	local points, _ = line(start_point.x, start_point.y, end_point.x, end_point.y, function (x,y)
 		return true
@@ -629,22 +629,26 @@ function ignite_along_line(level, source, end_point)
 	local burn_slevel = core.get_status_value( burn_amount, "ignite", world:get_player() )
 	local flame_amount = world:get_player().attributes.fireangel_flame
 	local flame_slevel = core.get_status_value( flame_amount, "ignite", world:get_player() )
-	nova.log("Fireangel beam mod checking for targets")
-	for t in world:get_level():targets( world:get_player(), 8 ) do 
-		local t_pos = t:get_position()
-		nova.log("Fireangel beam mod checking "..t.text.name)
-		for _, v in ipairs(points) do				
-			if v.x == t_pos.x and v.y == t_pos.y then
-				nova.log("Fireangel beam mod target on line")				
-				if t.data and t.data.can_burn then
-					nova.log("Fireangel beam mod trying to burn "..t.text.name)
-					core.apply_damage_status( t, "burning", "ignite", burn_slevel, world:get_player())								
-				end				
-				nova.log("Fireangel beam mod placing flames x"..t_pos.x..", y"..t_pos.y)
-				gtk.place_flames( t_pos, math.max( flame_slevel + math.random(3), 2 ), 300 + math.random(400) + 50 )
+	nova.log("Fireangel beam mod checking for targets")	
+	local burn_point = source:get_position()
+	for _, v in ipairs(points) do
+		if v.x == start_point.x and v.y == start_point.y then
+			nova.log("Fireangel beam mod not igniting player")
+		else  	
+			burn_point.x = v.x
+			burn_point.y = v.y
+			for e in world:get_level():entities( burn_point ) do
+				nova.log("Fireangel beam mod entity found on line")				
+				if e.data and e.data.can_burn then
+					nova.log("Fireangel beam mod trying to burn "..e.text.name)
+					core.apply_damage_status( e, "burning", "ignite", burn_slevel, world:get_player())								
+				end					
 			end
+			nova.log("Fireangel beam mod placing flames x"..burn_point.x..", y"..burn_point.y)
+			gtk.place_flames( burn_point, math.max( flame_slevel + math.random(3), 2 ), 300 + math.random(400) + 50 )
 		end
-	end	
+		
+	end
 end
 
 register_blueprint "kperk_fireangel"
@@ -656,7 +660,7 @@ register_blueprint "kperk_fireangel"
 				nova.log("Using modded fireangel perk")
 				if not is_repeat then					
 					if weapon and weapon.ui_target and weapon.ui_target.type == world:hash("beam") then																		
-						ignite_along_line(level, source, c)						
+						ignite_along_line(self, level, source, c)						
 					else
 						for e in level:entities( c ) do
 							if e.data and e.data.can_burn then			
