@@ -1,3 +1,5 @@
+nova.require "libraries/bresenham"
+
 register_blueprint "perk_wa_calibration"
 {
 	flags      = { EF_NOPICKUP }, 
@@ -615,6 +617,64 @@ register_blueprint "ktrait_master_gunrunner"
 				end
 			end
 		]=],
+	},
+}
+
+function ignite_along_line(level, source, end_point) 
+	local start_point = source:get_position()
+	local points, _ = line(start_point.x, start_point.y, end_point.x, end_point.y, function (x,y)
+		return true
+	end)
+	local burn_amount = world:get_player().attributes.fireangel_burn
+	local burn_slevel = core.get_status_value( burn_amount, "ignite", world:get_player() )
+	local flame_amount = world:get_player().attributes.fireangel_flame
+	local flame_slevel = core.get_status_value( flame_amount, "ignite", world:get_player() )
+	nova.log("Fireangel beam mod checking for targets")
+	for t in world:get_level():targets( world:get_player(), 8 ) do 
+		local t_pos = t:get_position()
+		nova.log("Fireangel beam mod checking "..t.text.name)
+		for _, v in ipairs(points) do				
+			if v.x == t_pos.x and v.y == t_pos.y then
+				nova.log("Fireangel beam mod target on line")				
+				if t.data and t.data.can_burn then
+					nova.log("Fireangel beam mod trying to burn "..t.text.name)
+					core.apply_damage_status( t, "burning", "ignite", burn_slevel, world:get_player())								
+				end				
+				nova.log("Fireangel beam mod placing flames x"..t_pos.x..", y"..t_pos.y)
+				gtk.place_flames( t_pos, math.max( flame_slevel + math.random(3), 2 ), 300 + math.random(400) + 50 )
+			end
+		end
+	end	
+end
+
+register_blueprint "kperk_fireangel"
+{
+	flags = { EF_NOPICKUP }, 
+	callbacks = {
+		on_area_damage = [[
+			function ( self, weapon, level, c, damage, distance, center, source, is_repeat )				
+				nova.log("Using modded fireangel perk")
+				if not is_repeat then					
+					if weapon and weapon.ui_target and weapon.ui_target.type == world:hash("beam") then																		
+						ignite_along_line(level, source, c)						
+					else
+						for e in level:entities( c ) do
+							if e.data and e.data.can_burn then			
+								local amount = world:get_player().attributes.fireangel_burn
+								local slevel = core.get_status_value( amount, "ignite", world:get_player() )
+								core.apply_damage_status( e, "burning", "ignite", slevel, world:get_player() )
+							end
+						end
+					end	
+				end
+				if distance < 6 then
+					if distance < 1 then distance = 1 end
+					local amount = world:get_player().attributes.fireangel_flame
+					local slevel = core.get_status_value( math.max( amount + 1 - distance, 1 ), "ignite", world:get_player() )
+					gtk.place_flames( c, math.max( slevel + math.random(3), 2 ), 300 + math.random(400) + distance * 50 )
+				end				
+			end
+		]],
 	},
 }
 
