@@ -454,9 +454,10 @@ register_blueprint "perk_tb_loadingfeed"
 					local shots = weapon.attributes.shots or 1
 					local cost  = weapon.weapon.shot_cost
 					local clip = weapon.attributes.clip_size
-					if cost > 0 and clip ~= 99 then
+					local ammo = weapon.clip.ammo
+					if cost > 0 and ammo ~= world:hash("kit_multitool") then
 						world:get_level():reload( entity, weapon, true, shots * cost )
-					elseif cost > 0 and clip == 99 and weapon.clip.count == 0 then
+					elseif cost > 0 and ammo == world:hash("kit_multitool") and weapon.clip.count == 0 then
 						world:get_level():reload( entity, weapon, true, clip )
 					end
 				end
@@ -487,11 +488,11 @@ register_blueprint "perk_wb_efficient"
 		on_attach = [[
 			function( self, parent )
 				if parent.weapon then					
-					local clip = parent.attributes.clip_size
-					if clip ~= 99 then
+					local ammo = parent.clip.ammo
+					if ammo ~= world:hash("kit_multitool") then
 						self.attributes.reload_mod = 0.5
 						self.text.desc = "reload ammo efficiency doubled"
-					elseif clip == 99 then
+					elseif ammo == world:hash("kit_multitool") then
 						self.attributes.shot_cost_mod = 0.75
 						self.text.desc = "75% ammo consumption"
 					end
@@ -587,12 +588,13 @@ register_blueprint "ktrait_master_gunrunner"
 						local wd     = weapon.weapon
 						if not wd then return 0 end
 						local cd     = weapon.clip
+						local ammo = weapon.clip.ammo
 						if cd then
 							local clip_size = weapon:attribute( "clip_size", wd.group )
-							if cd.count < clip_size and clip_size < 99 then
+							if cd.count < clip_size and ammo ~= world:hash("kit_multitool") then
 								nova.log("Reload non nail "..tostring(cd.count).." of "..tostring(clip_size))
 								world:get_level():reload( user, weapon, true )
-							elseif cd.count < clip_size and cd.count == 0 and clip_size >= 99 then	
+							elseif cd.count < clip_size and cd.count == 0 and ammo == world:hash("kit_multitool") then	
 								nova.log("Reload nail "..tostring(cd.count).." of "..tostring(clip_size))
 								world:get_level():reload( user, weapon, true )
 							end
