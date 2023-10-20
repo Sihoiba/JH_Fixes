@@ -450,7 +450,7 @@ register_blueprint "perk_tb_loadingfeed"
 		on_move = [=[
 			function ( self, entity )
 				local weapon = gtk.get_weapon_group( entity, { "smgs", "auto", "semi", "rotary" } )
-				if weapon and weapon.weapon then
+				if weapon and weapon.weapon and weapon.clip then
 					local shots = weapon.attributes.shots or 1
 					local cost  = weapon.weapon.shot_cost
 					local clip = weapon.attributes.clip_size
