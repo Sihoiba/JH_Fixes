@@ -587,9 +587,9 @@ register_blueprint "ktrait_master_gunrunner"
 					if weapon then
 						local wd     = weapon.weapon
 						if not wd then return 0 end
-						local cd     = weapon.clip
-						local ammo = weapon.clip.ammo
+						local cd     = weapon.clip						
 						if cd then
+							local ammo = cd.ammo
 							local clip_size = weapon:attribute( "clip_size", wd.group )
 							if cd.count < clip_size and ammo ~= world:hash("kit_multitool") then
 								nova.log("Reload non nail "..tostring(cd.count).." of "..tostring(clip_size))
