@@ -190,6 +190,10 @@ register_blueprint "perk_we_nano"
                     parent.data.before_nano.ammo = parent.clip.ammo
                     parent.clip.ammo = ""
                     self.text.desc = "this weapon doesn't need ammo when reloading"
+                    if parent.clip.reload_count == -1 then
+                        self.text.desc = "this weapon doesn't need ammo when reloading and can be reloaded manually"
+                        parent.clip.reload_count = 1
+                    end
                 elseif parent.weapon and parent.weapon.type == world:hash("melee") then
                     parent.data.before_nano = {}
                     self.text.desc = "this weapon is sharper"
