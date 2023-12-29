@@ -960,3 +960,117 @@ register_blueprint "perk_te_necrotic"
         ]],
     },
 }
+
+register_blueprint "buff_quick_shot"
+{
+    flags = { EF_NOPICKUP },
+    text = {
+        name    = "Quickshot",
+        desc    = "Your next shot with current weapon is 10% faster",
+    },
+    callbacks = {
+        on_die = [[
+            function (self)
+                world:mark_destroy(self)
+            end
+        ]],
+        on_rearm = [=[
+            function(self, entity, wpn, wpn_next)
+                world:mark_destroy(self)
+            end
+        ]=],
+        on_post_command = [[
+            function (self, actor, cmt, tgt, time)
+                if self.data.applied_this_turn then
+                    self.data.applied_this_turn = false
+                    world:mark_destroy(self)
+                else
+                    self.data.applied_this_turn = true
+                end
+            end
+        ]],
+    },
+    attributes = {
+        fire_time = 0.9,
+    },
+    data = {
+        applied_this_turn = false,
+    },
+    ui_buff = {
+        color = GREEN,
+    },
+}
+
+register_blueprint "perk_wb_loading_holster"
+{
+    blueprint = "perk",
+    lists = {
+        group    = "perk_wb",
+        keywords = { "reload", "rotary", "shotguns", "explosives", },
+    },
+    data = {
+        perk_group = "reload",
+    },
+    text = {
+        name = "Loading holster",
+        desc = "auto-reload the weapon when swapping to it",
+    },
+    attributes = {},
+    callbacks = {
+        on_attach = [=[
+            function( self, parent )
+                if parent and parent.weapon and parent.clip and parent.clip.reload_count and parent.clip.reload_count == -1 then
+                     self.text.desc = "your first shot after swapping to it is faster"
+                end
+            end
+        ]=],
+        on_rearm = [=[
+            function( self, entity, weapon )
+                if weapon == self:parent() and weapon.weapon then
+                    if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
+                        entity:attach( "buff_quick_shot" )
+                    else
+                        world:get_level():reload( entity, weapon, true )
+                    end
+                end
+            end
+        ]=],
+    },
+}
+
+register_blueprint "perk_wb_autoloader"
+{
+    blueprint = "perk",
+    lists = {
+        group    = "perk_wb",
+        keywords = { "reload", "pistols", "smgs", "auto", "rotary", "semi", "shotguns", "explosives", },
+    },
+    data = {
+        perk_group = "reload",
+    },
+    text = {
+        name = "Autoloader",
+        desc = "reloads weapon on move",
+    },
+    callbacks = {
+        on_attach = [=[
+            function( self, parent )
+                if parent and parent.weapon and parent.clip and parent.clip.reload_count and parent.clip.reload_count == -1 then
+                     self.text.desc = "Shots fired after moving are faster"
+                end
+            end
+        ]=],
+        on_move = [=[
+            function ( self, entity )
+                local weapon = self:parent()
+                if weapon then
+                    if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
+                        entity:attach( "buff_quick_shot" )
+                    else
+                        world:get_level():reload( entity, weapon, true )
+                    end
+                end
+            end
+        ]=],
+    },
+}
