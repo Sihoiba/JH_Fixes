@@ -185,6 +185,9 @@ register_blueprint "perk_we_nano"
     callbacks = {
         on_attach = [[
             function( self, parent )
+                if not parent.data then
+                    parent.data = {}
+                end
                 if parent.weapon and parent.clip then
                     parent.data.before_nano = {}
                     parent.data.before_nano.ammo = parent.clip.ammo
