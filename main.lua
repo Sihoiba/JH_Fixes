@@ -298,6 +298,7 @@ register_blueprint "exo_pack_nano"
                         return 0
                     end
                     world:remove_item( who, self )
+                    world:get_player().statistics.data.mod:inc()
                     return 100
                 else
                     return 0
