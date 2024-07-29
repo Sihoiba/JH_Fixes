@@ -861,7 +861,7 @@ register_blueprint "trait_scavenger"
         ]=],
         on_pickup = [=[
             function ( self, user, item )
-                if item.data and item.data.from_terminal then
+                if item and item.data and item.data.from_terminal then
                     item.data.from_terminal = false
                     return 0
                 end
