@@ -1125,3 +1125,33 @@ register_blueprint "bot_tracker"
         priority = 110,
     },
 }
+
+register_blueprint "kbuff_adrenaline_bloodrush"
+{
+    flags = { EF_NOPICKUP },
+    attributes = {
+        damage_mult = 1.5,
+    },
+}
+
+register_blueprint "perk_ae_bloodrush"
+{
+    blueprint = "perk",
+    text = {
+        name = "Bloodrush",
+        desc = "Adrenaline boosts your damage by +50% for its duration",
+    },
+    attributes = {
+        level = 3,
+    },
+    callbacks = {
+        on_adrenaline = [[
+            function ( self, entity )
+                local adrenaline = entity:child("kbuff_adrenaline")
+                if adrenaline then
+                    world:add_buff( entity, "kbuff_adrenaline_bloodrush", 500 )
+                end
+            end
+        ]],
+    },
+}
