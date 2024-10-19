@@ -1155,3 +1155,34 @@ register_blueprint "perk_ae_bloodrush"
         ]],
     },
 }
+
+register_blueprint "perk_we_splatter"
+{
+    flags = { EF_NOPICKUP },
+    text = {
+        name = "Splatter",
+        desc = "killing enemies causes nearby enemies to bleed",
+    },
+    attributes = {
+        level = 3,
+    },
+    callbacks = {
+        on_kill = [=[
+            function ( self, entity, target, weapon, gibbed, coord )
+                if weapon == self:parent() then
+                    if target and target.data and target.data.ai then
+                        local l = world:get_level()
+                        for e in l:enemies() do
+                            if e.data and e.data.can_bleed then
+                                if l:cdistance( world:get_position(e), coord ) < 5 then
+                                    local slevel = core.get_status_value( 5, "bleed", entity )
+                                    core.apply_damage_status( e, "bleed", "bleed", slevel, entity )
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        ]=],
+    },
+}
