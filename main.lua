@@ -983,7 +983,7 @@ register_blueprint "perk_hb_botscanner"
                 if entity then
                     local l   = world:get_level()
                     for e in l:beings() do
-                        if e.data and e.data.is_mechanical then
+                        if e.data and e.data.is_mechanical and not e:child( "disabled" ) and not e:child( "friendly" ) then
                             local btracker = e:equip("bot_tracker")
                             e.minimap.color = btracker.minimap.color
                             e.minimap.always = true
