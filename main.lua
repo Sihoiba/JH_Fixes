@@ -720,65 +720,6 @@ register_blueprint "ancient_pack_hallowed"
     },
 }
 
-register_blueprint "perk_ta_capacitor"
-{
-    blueprint = "perk",
-    lists = {
-        group    = "perk_ca",
-        keywords = { "armor", },
-    },
-    text = {
-        name = "Capacitor matrix",
-        desc = "receiving damage recharges class skill (up to 100%)",
-    },
-    attributes = {
-        level = 2,
-    },
-    callbacks = {
-        on_receive_damage = [[
-            function ( self, entity, source, weapon, amount )
-                nova.log("on_recieve_damage")
-                if not entity then return end
-                if not entity.data or not entity.data.is_player then return end
-                if amount < 5 then return end
-                nova.log("on_recieve_damage past guard")
-                local restore = math.floor( amount * 0.2 )
-                local klass = gtk.get_klass_id( entity )
-                local resource
-
-                if klass == "marine" then
-                    nova.log("is marine")
-                    resource = entity:child( "resource_fury" )
-                elseif klass == "scout" then
-                    resource = entity:child( "resource_energy" )
-                elseif klass == "tech" then
-                    resource = entity:child( "resource_power" )
-                else
-                    local klass_hash = entity.progression.klass
-                    nova.log(klass_hash)
-                    local klass_id   = world:resolve_hash( klass_hash )
-                    nova.log(klass_id)
-                    local k = blueprints[ klass_id ]
-                    if not k or not k.klass or not k.klass.res then
-                        return
-                    end
-                    resource = entity:child( k.klass.res )
-                end
-
-                if not resource then
-                    return
-                end
-
-                local rattr = resource.attributes
-                if rattr.value < rattr.max then
-                    nova.log("restoring")
-                    rattr.value = math.min( rattr.value + restore, rattr.max )
-                end
-            end
-        ]],
-    }
-}
-
 register_blueprint "trait_scavenger"
 {
     blueprint = "trait",
