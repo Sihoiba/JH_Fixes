@@ -29,7 +29,7 @@ Nailgun/Super Nailgun specific fixes
 17. Efficient weapon perk now gives Nailgun and Super Nailgun reduced shot cost instead of doing nothing.
 
 Recharging exotic specific fixes
-18. Efficient doubles recharge rate of the CRI Blaster and PES Rifle
+18. Efficient reduces shot cost of the CRI Blaster and PES Rifle instead of doing nothing
 
 Item description clarity improvements
 19. Added damage to Novabomb description.
