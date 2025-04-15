@@ -416,34 +416,6 @@ register_blueprint "perk_tb_loadingfeed"
     },
 }
 
-register_blueprint "perk_we_blaster"
-{
-    flags = { EF_NOPICKUP },
-    text = {
-        name = "Arc-powered",
-        desc = "this weapon recharges ammo, can't be manually reloaded",
-    },
-    attributes = {
-        level    = 3,
-        rate   = 1,
-    },
-    callbacks = {
-        on_timer = [[
-            function ( self, first )
-                if first then return 99 end
-                local weapon     = self:parent()
-                local clip_data  = weapon.clip
-                local clip_size  = weapon:attribute( "clip_size" )
-                local sattr      = self.attributes
-                if clip_data and clip_data.count < clip_size then
-                    clip_data.count = math.min( clip_data.count + sattr.rate, clip_size )
-                end
-                return 100
-            end
-        ]],
-    },
-}
-
 register_blueprint "perk_wb_efficient"
 {
     blueprint = "perk",
@@ -467,15 +439,12 @@ register_blueprint "perk_wb_efficient"
             function( self, parent )
                 if parent.weapon and parent.clip then
                     local ammo = parent.clip.ammo
-                    if ammo ~= world:hash("kit_multitool") then
-                        self.attributes.reload_mod = 0.5
-                        self.text.desc = "reload ammo efficiency doubled"
-                    elseif ammo == world:hash("kit_multitool") then
+                    if ammo == world:hash("kit_multitool") or parent.clip.reload_count == -1 then
                         self.attributes.shot_cost_mod = 0.75
                         self.text.desc = "75% ammo consumption"
-                    end
-                    if parent.clip.reload_count == -1 and parent.attributes and parent.attributes.rate then
-                        parent.attributes.rate = parent.attributes.rate * 2
+                    elseif ammo ~= world:hash("kit_multitool") then
+                        self.attributes.reload_mod = 0.5
+                        self.text.desc = "reload ammo efficiency doubled"
                     end
                 end
             end
