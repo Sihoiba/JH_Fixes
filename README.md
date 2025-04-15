@@ -28,17 +28,20 @@ Nailgun/Super Nailgun specific fixes
 16. Gunrunner no longer reloads Nailgun and Super Nailgun until the weapon is empty.
 17. Efficient weapon perk now gives Nailgun and Super Nailgun reduced shot cost instead of doing nothing.
 
+Recharging exotic specific fixes
+18. Efficient doubles recharge rate of the CRI Blaster and PES Rifle
+
 Item description clarity improvements
-18. Added damage to Novabomb description.
-19. Ancient Mod Pack description now tells you you cannot dismantle the weapon to get it back once used.
+19. Added damage to Novabomb description.
+20. Ancient Mod Pack description now tells you you cannot dismantle the weapon to get it back once used.
 
 Rare mod packs on melee builds/AoB improvements
-20. Nano mod packs applied to weapons that cannot be reloaded, e.g. the EGLS Launcher or that self recharge like the Blaster allow the weapon to be reloaded 1 ammo per reload.
-21. Nano packs can now be applied to melee weapons. If the weapon does not do pierce damage it makes the weapon pierce. If the weapon is already pierce adds 50% crit damage. Also makes large and non-blade weapons work with Tech Blademaster.
+21. Nano mod packs applied to weapons that cannot be reloaded, e.g. the EGLS Launcher or that self recharge like the Blaster allow the weapon to be reloaded 1 ammo per reload.
+22. Nano packs can now be applied to melee weapons. If the weapon does not do pierce damage it makes the weapon pierce. If the weapon is already pierce adds 50% crit damage. Also makes large and non-blade weapons work with Tech Blademaster.
 
 Pure Quality of Life improvements
-22. Manufacturing ammo at an ammo terminal when you have scavenger trait will no longer convert the ammo to the type of the weapon you are holding as presumably if you chose a different ammo type it was because you wanted it.
-23. Botscanner helmet perk now highlights robots in light grey rather than red to avoid getting confused between robots and when the only three enemies left on the map enemy reveal.
+23. Manufacturing ammo at an ammo terminal when you have scavenger trait will no longer convert the ammo to the type of the weapon you are holding as presumably if you chose a different ammo type it was because you wanted it.
+24. Botscanner helmet perk now highlights robots in light grey rather than red to avoid getting confused between robots and when the only three enemies left on the map enemy reveal.
 
 ## Installing
 
