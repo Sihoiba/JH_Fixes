@@ -1004,3 +1004,64 @@ register_blueprint "bot_tracker"
         priority = 110,
     },
 }
+
+register_blueprint "terminal_unlock"
+{
+    flags = { EF_NOPICKUP },
+    text = {
+        entry = "Unlock Vault",
+        desc  = "Unlock securely locked vault on the current level."
+    },
+    data = {
+        terminal = {
+            priority = 10,
+        },
+    },
+    callbacks = {
+        on_activate = [=[
+            function( self, who, level )
+                local parent = self:parent()
+                local ar = level:get_area()
+                if self.data and self.data.area then
+                    ar = self.data.area
+                end
+                for c in level:coords( {"door_frame","pdoor_frame","door_frame_l","door_frame_r" }, ar ) do
+                    local d = level:get_entity(c,"door") or level:get_entity(c,"door2_l") or level:get_entity(c,"door2_r")
+                    if d then
+                        level:change_state( d, {
+                            door_locked    = "door_unlocked",
+                            door2_locked_l = "door2_unlocked_l",
+                            door2_locked_r = "door2_unlocked_r",
+                        })
+                        level:set_cell_flag( c, EF_NOPATH, false )
+                    end
+                end
+                local parent = self:parent()
+                world:destroy( self )
+                ui:activate_terminal( who, parent )
+            return 100
+            end
+        ]=]
+    },
+}
+
+register_blueprint "door_locked"
+{
+    callbacks = {
+        on_activate = [=[
+        function( self, who, level )
+            if who == world:get_player() then
+                world:play_voice( "vo_locked" )
+            end
+            return 0
+        end
+        ]=],
+
+        on_die = [[
+            function ( self )
+                local level = world:get_level()
+                level:set_cell_flag( self:parent():get_position() , EF_NOPATH, false )
+            end
+        ]],
+    },
+}
