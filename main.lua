@@ -1,5 +1,3 @@
-nova.require "libraries/bresenham"
-
 register_blueprint "perk_wa_calibration"
 {
     flags      = { EF_NOPICKUP },
@@ -44,62 +42,6 @@ register_blueprint "perk_wa_calibration"
                                 end
                                 sattr.damage    = math.ceil(weapon.attributes.damage * 0.1)
                                 return
-                            end
-                        end
-                    end
-                end
-            end
-        ]=],
-    },
-}
-
-register_blueprint "perk_wa_sustain"
-{
-    blueprint = "perk",
-    lists = {
-        group    = "perk_wa",
-        keywords = { "reload", "pistols", "smgs", "auto", "rotary", "semi", "shotguns", "explosives", },
-    },
-    data = {
-        perk_group = "reload",
-    },
-    text = {
-        name = "Sustain",
-        desc = "return bullets to the magazine on kill",
-    },
-    attributes = {
-        level = 2,
-    },
-    callbacks = {
-        on_attach = [=[
-            function( self, parent )
-                if parent and parent.weapon then
-                    if ( parent.weapon.type ~= world:hash("melee") ) then
-                        self.text.desc = "return bullets to the magazine on kill"
-                    else
-                        self.text.desc = "repairs armor on a melee kill"
-                    end
-                end
-            end
-        ]=],
-        on_kill = [=[
-            function ( self, entity, target, weapon )
-                if target then
-                    if target.data and target.data.ai then
-                        if weapon == self:parent() and weapon.weapon and weapon.weapon.type ~= world:hash("melee") then
-                            local shots     = weapon.attributes.shots or 1
-                            local clip_size = weapon:attribute("clip_size") or 1
-                            local shot_cost = weapon.weapon.shot_cost
-                            local refund    = shots * shot_cost
-
-                            if weapon.clip then
-                                weapon.clip.count = math.min( weapon.clip.count + refund, math.max( clip_size, weapon.clip.count ) )
-                            end
-                        elseif weapon == self:parent() and weapon.weapon and weapon.weapon.type == world:hash("melee") then
-                            local fixa   = core.repair_item( entity, "armor", 0.05 )
-                            local fixh   = core.repair_item( entity, "head", 0.05 )
-                            if fixa or fixh then
-                                ui:spawn_fx( entity, "fx_armor", entity )
                             end
                         end
                     end
@@ -382,40 +324,6 @@ register_blueprint "perk_wb_extended_mag"
     },
 }
 
-register_blueprint "perk_tb_loadingfeed"
-{
-    blueprint = "perk",
-    lists = {
-        group    = "perk_cb",
-        keywords = { "reload", "armor", },
-    },
-    data = {
-        perk_group = "reload",
-    },
-    text = {
-        name = "Loading feed",
-        desc = "partially reloads SMGs, autos, semis and rotaries on the move",
-    },
-    callbacks = {
-        on_move = [=[
-            function ( self, entity )
-                local weapon = gtk.get_weapon_group( entity, { "smgs", "auto", "semi", "rotary" } )
-                if weapon and weapon.weapon and weapon.clip then
-                    local shots = weapon.attributes.shots or 1
-                    local cost  = weapon.weapon.shot_cost
-                    local clip = weapon.attributes.clip_size
-                    local ammo = weapon.clip.ammo
-                    if cost > 0 and ammo ~= world:hash("kit_multitool") then
-                        world:get_level():reload( entity, weapon, true, shots * cost )
-                    elseif cost > 0 and ammo == world:hash("kit_multitool") and weapon.clip.count == 0 then
-                        world:get_level():reload( entity, weapon, true, clip )
-                    end
-                end
-            end
-        ]=],
-    },
-}
-
 register_blueprint "perk_wb_efficient"
 {
     blueprint = "perk",
@@ -446,188 +354,6 @@ register_blueprint "perk_wb_efficient"
                         self.attributes.reload_mod = 0.5
                         self.text.desc = "reload ammo efficiency doubled"
                     end
-                end
-            end
-        ]],
-    },
-}
-
-register_blueprint "ktrait_master_gunrunner"
-{
-    blueprint = "trait",
-    text = {
-        name   = "GUNRUNNER",
-        desc   = "MASTER TRAIT - reduce attack time after move and reload weapons",
-        full   = "Run and gun is your motto! No wasting time reloading {?curse|shit|guns}, so you do it while you move. Also, while you move you prep for attack, so you attack faster, and with {!+1} optimal distance!\n\n{!LEVEL 1} - {!50%} attack time after move\n{!LEVEL 2} - {!25%} attack time and {!+25%} flat damage after move\n{!LEVEL 3} - {!+50%} flat damage after move\n\nYou can pick only one MASTER trait per character.",
-        abbr   = "MGU",
-        bdesc  = "{!GUNRUNNER} bonuses are active",
-        bdesc1 = "firing takes {!50%} regular attack time, {!+1} optimal distance",
-        bdesc2 = "firing takes {!25%} regular attack time, {!+1} optimal distance, {!+25%} damage",
-        bdesc3 = "firing takes {!25%} regular attack time, {!+1} optimal distance, {!+50%} damage",
-    },
-    ui_buff = {
-        color     = GREEN,
-        priority  = -1,
-        style     = 2,
-        attribute = "moved",
-    },
-    attributes = {
-        level          = 1,
-        moved          = 0,
-        apply          = 0,
-        fire_time      = 1.0,
-        opt_distance   = 0,
-        damage_mult    = 1.0,
-        gr_fire_time   = 1.0,
-        gr_damage_mult = 1.0,
-        gr_opt_distance= 0,
-    },
-    callbacks = {
-        on_activate = [=[
-            function(self,entity)
-                local tlevel, t = gtk.upgrade_master( entity, "ktrait_master_gunrunner" )
-                local attr      = t.attributes
-                if tlevel == 1 then
-                    world:set_text( t, "bdesc", "bdesc1" )
-                    attr.gr_fire_time    = 0.5
-                    attr.gr_damage_mult  = 1.0
-                    attr.gr_opt_distance = 1
-                elseif tlevel == 2 then
-                    world:set_text( t, "bdesc", "bdesc2" )
-                    attr.gr_fire_time    = 0.25
-                    attr.gr_damage_mult  = 1.25
-                    attr.gr_opt_distance = 1
-                elseif tlevel == 3 then
-                    world:set_text( t, "bdesc", "bdesc3" )
-                    attr.gr_fire_time    = 0.25
-                    attr.gr_damage_mult  = 1.5
-                    attr.gr_opt_distance = 1
-                end
-            end
-        ]=],
-        on_pre_command = [[
-            function ( self, actor, cmt, tgt )
-                local attr   = self.attributes
-                if attr.moved == 1 then
-                    attr.moved = 0
-                    attr.apply = 1
-                end
-                return 0
-            end
-        ]],
-        on_post_command = [[
-            function ( self, actor, cmt, weapon, time )
-                if time <= 1 then
-                    local attr   = self.attributes
-                    if attr.apply == 1 then
-                        attr.moved = 1
-                        attr.apply = 0
-                    end
-                    return
-                end
-                self.attributes.apply = 0
-            end
-        ]],
-        on_move = [=[
-            function ( self, user )
-                local sattr  = self.attributes
-                sattr.moved  = 1
-                local weapon = user:get_weapon()
-                local function do_reload( weapon )
-                    if weapon then
-                        local wd     = weapon.weapon
-                        if not wd then return 0 end
-                        local cd     = weapon.clip
-                        if cd then
-                            local ammo = cd.ammo
-                            local clip_size = weapon:attribute( "clip_size", wd.group )
-                            if cd.count < clip_size and ammo ~= world:hash("kit_multitool") then
-                                nova.log("Reload non nail "..tostring(cd.count).." of "..tostring(clip_size))
-                                world:get_level():reload( user, weapon, true )
-                            elseif cd.count < clip_size and cd.count == 0 and ammo == world:hash("kit_multitool") then
-                                nova.log("Reload nail "..tostring(cd.count).." of "..tostring(clip_size))
-                                world:get_level():reload( user, weapon, true )
-                            end
-                        end
-                    end
-                end
-                do_reload( user:get_weapon(0) )
-                do_reload( user:get_weapon(1) )
-            end
-        ]=],
-        on_aim = [=[
-            function ( self, entity, target, weapon )
-                local attr = self.attributes
-                if target and (( attr.moved == 1 ) or ( attr.apply == 1 )) then
-                    attr.fire_time    = attr.gr_fire_time
-                    attr.opt_distance = attr.gr_opt_distance
-                    attr.damage_mult  = attr.gr_damage_mult
-                else
-                    attr.fire_time    = 1.0
-                    attr.opt_distance = 0
-                    attr.damage_mult  = 1.0
-                end
-            end
-        ]=],
-    },
-}
-
-function ignite_along_line(self, level, source, end_point)
-    local start_point = source:get_position()
-    local points, _ = line(start_point.x, start_point.y, end_point.x, end_point.y, function (x,y)
-        return true
-    end)
-    local burn_amount = world:get_player().attributes.fireangel_burn or 1
-    local burn_slevel = core.get_status_value( burn_amount, "ignite", world:get_player() )
-    local flame_amount = world:get_player().attributes.fireangel_flame or 8
-    local flame_slevel = core.get_status_value( flame_amount, "ignite", world:get_player() )
-    nova.log("Fireangel beam mod checking for targets")
-    local burn_point = source:get_position()
-    for _, v in ipairs(points) do
-        if v.x == start_point.x and v.y == start_point.y then
-            nova.log("Fireangel beam mod not igniting player")
-        else
-            burn_point.x = v.x
-            burn_point.y = v.y
-            for e in world:get_level():entities( burn_point ) do
-                nova.log("Fireangel beam mod entity found on line")
-                if e.data and e.data.can_burn then
-                    nova.log("Fireangel beam mod trying to burn "..e.text.name)
-                    core.apply_damage_status( e, "burning", "ignite", burn_slevel, world:get_player())
-                end
-            end
-            nova.log("Fireangel beam mod placing flames x"..burn_point.x..", y"..burn_point.y)
-            gtk.place_flames( burn_point, math.max( flame_slevel + math.random(3), 2 ), 300 + math.random(400) + 50 )
-        end
-
-    end
-end
-
-register_blueprint "kperk_fireangel"
-{
-    flags = { EF_NOPICKUP },
-    callbacks = {
-        on_area_damage = [[
-            function ( self, weapon, level, c, damage, distance, center, source, is_repeat )
-                nova.log("Using modded fireangel perk")
-                if not is_repeat then
-                    if weapon and weapon.ui_target and weapon.ui_target.type == world:hash("beam") then
-                        ignite_along_line(self, level, source, c)
-                    else
-                        for e in level:entities( c ) do
-                            if e.data and e.data.can_burn then
-                                local amount = world:get_player().attributes.fireangel_burn or 1
-                                local slevel = core.get_status_value( amount, "ignite", world:get_player() )
-                                core.apply_damage_status( e, "burning", "ignite", slevel, world:get_player() )
-                            end
-                        end
-                    end
-                end
-                if distance < 6 then
-                    if distance < 1 then distance = 1 end
-                    local amount = world:get_player().attributes.fireangel_flame or 8
-                    local slevel = core.get_status_value( math.max( amount + 1 - distance, 1 ), "ignite", world:get_player() )
-                    gtk.place_flames( c, math.max( slevel + math.random(3), 2 ), 300 + math.random(400) + distance * 50 )
                 end
             end
         ]],
@@ -920,7 +646,7 @@ register_blueprint "perk_wb_loading_holster"
                 if weapon == self:parent() and weapon.weapon then
                     if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
                         entity:attach( "buff_quick_shot" )
-                    else
+                    elseif not (weapon.data and weapon.data.no_autoreload) then
                         world:get_level():reload( entity, weapon, true )
                     end
                 end
@@ -957,7 +683,7 @@ register_blueprint "perk_wb_autoloader"
                 if weapon then
                     if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
                         entity:attach( "buff_quick_shot" )
-                    else
+                    elseif not (weapon.data and weapon.data.no_autoreload) then 
                         world:get_level():reload( entity, weapon, true )
                     end
                 end
