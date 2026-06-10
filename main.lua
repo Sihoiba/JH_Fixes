@@ -861,3 +861,42 @@ register_blueprint "ktrait_master_nuclearcoil"
         ]],
     }
 }
+
+register_blueprint "armor_alerter"
+{
+    flags = { EF_NOPICKUP },
+    data = {
+        alerted_armor = false,
+        alerted_head = false,
+    },
+    callbacks = {
+        on_action = [=[
+            function ( self, entity )
+                local alert_armor = false
+                local alert_head = false
+                local head = entity:get_slot("head")
+                local armor = entity:get_slot("armor")
+
+                if not self.data.alerted_armor and armor and not armor.armor.permanent and armor.health and armor.health.current < 100 and armor.health.current > 0 then
+                    alert_armor = true
+                    self.data.alerted_armor = true
+                elseif self.data.alerted_armor and armor and not armor.armor.permanent and armor.health and armor.health.current > 99 then
+                    self.data.alerted_armor = false
+                end
+
+                if not self.data.alerted_head and head and not head.armor.permanent and head.health and head.health.current < 100 and head.health.current > 0 then
+                    alert_head = true
+                    self.data.alerted_head = true
+                elseif self.data.alerted_head and head and not head.armor.permanent and head.health and head.health.current > 99 then
+                    self.data.alerted_head = false
+                end
+
+                if alert_armor or alert_head then
+                    ui:set_hint( "{WYOUR ARMOR AND/OR HELMET ARE AT RISK}", 5001, -2 )
+                end
+
+            end
+        ]=],
+    },
+}
+world.register_on_entity(function(x) if x.data and x.data.ai and x.data.ai.group == "player" then x:attach("armor_alerter") end end)

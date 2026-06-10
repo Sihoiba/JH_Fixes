@@ -36,6 +36,7 @@ Jupiter Hell mod to improve the quality of life with some of the mod pack, av an
 16. Manufacturing ammo at an ammo terminal when you have scavenger trait will no longer convert the ammo to the type of the weapon you are holding as presumably if you chose a different ammo type it was because you wanted it.
 17. Botscanner helmet perk now highlights robots in light grey rather than red to avoid getting confused between robots and when the only three enemies left on the map enemy reveal.
 18. Assassinate can now teleport into and out of vaults once they have been unlocked (either via terminal or destroyed door - thanks to Deemzul)
+19. An alert message pops up if your armor or helmet drops below 100 durability. (thanks to Deemzul)
 
 ## Installing
 
