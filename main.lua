@@ -63,29 +63,6 @@ register_blueprint "perk_we_nano"
         level = 3,
     },
     callbacks = {
-        on_pre_command = [[
-            function ( self, player, command, target, coord, nid )
-                if command == COMMAND_RELOAD then
-                    local weapon = self:parent()
-                    if weapon.weapon and weapon.clip then
-                        if weapon.clip.count == (weapon.attributes.clip_size or 1) then
-                            return -1
-                        else
-                            if weapon.clip.reload_count > 0 then
-                                weapon.clip.count = math.min(weapon.clip.count + weapon.clip.reload_count, (weapon.attributes.clip_size or 1))
-                            elseif weapon.clip.reload_count < 0 then
-                                return -1
-                            else
-                                weapon.clip.count = math.min(weapon.clip.count + weapon.attributes.clip_size, (weapon.attributes.clip_size or 1))
-                            end
-                            world:play_sound("reload", weapon)
-                            return (weapon.attributes.reload_time or 1 ) * 100
-                        end
-                    end
-                    return 0
-                end
-            end
-        ]],
         on_attach = [[
             function( self, parent )
                 if not parent.data then
@@ -93,6 +70,8 @@ register_blueprint "perk_we_nano"
                 end
                 if parent.weapon and parent.clip then
                     parent.data.before_nano = {}
+                    parent.data.before_nano.ammo = parent.clip.ammo
+                    parent.clip.ammo = ""
                     self.text.desc = "this weapon doesn't need ammo when reloading"
                     if parent.clip.reload_count == -1 then
                         self.text.desc = "this weapon doesn't need ammo when reloading and can be reloaded manually"
@@ -704,7 +683,7 @@ register_blueprint "perk_wb_autoloader"
                 if weapon then
                     if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
                         entity:attach( "buff_quick_shot" )
-                    elseif not (weapon.data and weapon.data.no_autoreload) then
+                    elseif not (weapon.data and weapon.data.no_autoreload) then 
                         world:get_level():reload( entity, weapon, true )
                     end
                 end
