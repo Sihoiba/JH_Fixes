@@ -69,6 +69,7 @@ register_blueprint "perk_we_nano"
                     parent.data = {}
                 end
                 if parent.weapon and parent.clip then
+                    parent.data.used_cells = (parent.clip.ammo == world:hash("ammo_cells"))
                     parent.data.before_nano = {}
                     parent.data.before_nano.ammo = parent.clip.ammo
                     parent.clip.ammo = ""
@@ -793,4 +794,70 @@ register_blueprint "door_locked"
             end
         ]],
     },
+}
+
+register_blueprint "ktrait_master_nuclearcoil"
+{
+    blueprint = "trait",
+    text = {
+        name   = "NUCLEAR COIL",
+        desc   = "MASTER TRAIT - cell-weapons - regenerate if empty and increase critical chance",
+        full   = "Anything powered by cells is your jam. Not only do you increase your critical chance when using them, but held cell-based weapons regenerate a bit of power if empty! Not to mention you know how to use them to keep you warm - you're immune to {!Cold} statuses.\n\n{!LEVEL 1} - regenerate up to {!8} cells, {!+25%} critical chance\n{!LEVEL 2} - regenerate up to {!12} cells, {!+50%} critical chance\n{!LEVEL 3} - regenerate up to {!20} cells, regenerate {!2x} as fast, {!+100%} critical chance\n\nYou can pick only one MASTER trait per character.",
+        abbr   = "MAA",
+    },
+    attributes = {
+        level                 = 1,
+        nuclearcoil_crit_chance = 25,
+        nuclearcoil_regen_max   = 8,
+        nuclearcoil_regen       = 1,
+        resist = {
+            cold = 100,
+        },
+    },
+    callbacks = {
+        on_activate = [=[
+            function(self,entity)
+                local tlevel, t = gtk.upgrade_master( entity, "ktrait_master_nuclearcoil" )
+                local tattr     = t.attributes
+                if tlevel == 2 then
+                    tattr.nuclearcoil_crit_chance = 50
+                    tattr.nuclearcoil_regen_max   = 12
+                    --tattr.nuclearcoil_regen       = 2
+                elseif tlevel == 3 then
+                    tattr.nuclearcoil_crit_chance = 100
+                    tattr.nuclearcoil_regen_max   = 20
+                    tattr.nuclearcoil_regen       = 2
+                end
+            end
+        ]=],
+        on_aim = [=[
+            function ( self, entity, target, weapon )
+                local crit_chance = 0
+                if target and weapon and weapon.clip and ( weapon.clip.ammo == world:hash("ammo_cells") or ( weapon.data and weapon.data.used_cells ) ) then
+                    crit_chance = self.attributes.nuclearcoil_crit_chance
+                end
+                self.attributes.crit_chance = crit_chance
+            end
+        ]=],
+        on_post_command = [[
+            function ( self, actor, cmt, weapon, time )
+                if time <= 1 then return end
+                local attr       = self.attributes
+                local regen_max  = attr.nuclearcoil_regen_max
+                local regen      = attr.nuclearcoil_regen
+                local run_weapon = function( w )
+                    if w and w.clip and ( w.clip.ammo == world:hash("ammo_cells") or ( w.data and w.data.used_cells ) ) then
+                        local max = math.min( w:attribute( "clip_size" ), regen_max )
+                        local cur = w.clip.count
+                        if cur < max then
+                            local amount = math.ceil( regen * ( time / 100 ) )
+                            w.clip.count = math.min( max, cur + amount )
+                        end
+                    end
+                end
+                run_weapon( actor:get_weapon(0) )
+                run_weapon( actor:get_weapon(1) )
+            end
+        ]],
+    }
 }
