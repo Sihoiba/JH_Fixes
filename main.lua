@@ -683,7 +683,7 @@ register_blueprint "perk_wb_autoloader"
                 if weapon then
                     if weapon.clip and weapon.clip.reload_count and weapon.clip.reload_count == -1 then
                         entity:attach( "buff_quick_shot" )
-                    elseif not (weapon.data and weapon.data.no_autoreload) then 
+                    elseif not (weapon.data and weapon.data.no_autoreload) then
                         world:get_level():reload( entity, weapon, true )
                     end
                 end
@@ -759,6 +759,10 @@ register_blueprint "terminal_unlock"
                             door2_locked_l = "door2_unlocked_l",
                             door2_locked_r = "door2_unlocked_r",
                         })
+                        if d.attributes and d.attributes.health == 0 then
+                            d.attributes.health = 50
+                            d.health.current = 50
+                        end
                         level:set_cell_flag( c, EF_NOPATH, false )
                     end
                 end
@@ -782,7 +786,6 @@ register_blueprint "door_locked"
             return 0
         end
         ]=],
-
         on_die = [[
             function ( self )
                 local level = world:get_level()
